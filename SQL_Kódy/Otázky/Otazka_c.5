@@ -1,0 +1,70 @@
+-- 5. Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, projeví se to na cenách potravin či mzdách ve stejném nebo násdujícím roce výraznějším růstem?--
+-- Odpověď: Není tomu tak vždy. Chybí data z roku 2019 pro tabulku cen potravin. Kdybychom měli tato data a ukázalo by se, že mezi rokem 2018 - 2019 byl nárust ceny vyšší než 4 % tak dle vypočtených dat vychází:
+--          Pokud HDP vzrostlo o více jak 4 %, tak nárust cen potravin i mezd narostl ve stejném a zároveň v následujícím roce o více jak 4 % přesně ve dvou ze tří případů.
+--          S daty, které máme, můžeme říci, že pokud HDP vzrostlo o více jak 4 %, tak o více jak 4 % vzrostly mzdy i ceny potravin ve dvou ze tří případů. V následujícím roce mzdy ve dvou ze tří případů a ceny potravin v jednom ze tří případů. --
+
+WITH gdp_join AS (
+SELECT economies.`year` 
+      ,gdp
+      ,ROUND((((gdp - (LAG(gdp, 1)OVER (
+          ORDER BY `year`)))/gdp)*100), 1)  AS gdp_value_percent		
+FROM economies
+WHERE country = 'Czech Republic' 
+)
+,price_and_payroll AS (
+SELECT common_year
+      ,ROUND(AVG(payroll_value_percent), 1) AS avg_payroll_perc
+      ,ROUND(AVG(price_value_percent), 1)   AS avg_price_perc
+      ,LEAD(ROUND(AVG(payroll_value_percent), 1)) OVER (
+          ORDER BY common_year)             AS lead_payroll
+      ,LEAD(ROUND(AVG(price_value_percent), 1)) OVER (
+          ORDER BY common_year)             AS lead_price
+FROM t_petr_luka_project_SQL_primary_final
+GROUP BY common_year
+ORDER BY common_year
+)
+SELECT common_year
+      ,CASE 
+        WHEN (gdp_value_percent > 4 
+         AND avg_payroll_perc > 4
+         AND avg_price_perc > 4)
+        THEN 'Payroll and Price are Higer'
+        WHEN gdp_value_percent > 4 
+         AND avg_payroll_perc > 4
+        THEN 'Payroll is Higher'
+        WHEN gdp_value_percent > 4 
+         AND avg_price_perc > 4
+        THEN 'Price is Higher'
+        WHEN gdp_value_percent > 4
+         AND (avg_price_perc
+         OR avg_price_perc) < 4
+        THEN 'Has NO effect'
+        ELSE '-'
+       END                                  AS same_year_differences
+      ,CASE 
+        WHEN (gdp_value_percent > 4 
+         AND lead_payroll > 4 
+         AND lead_price > 4)
+         THEN 'Payroll and Price are Higer'
+        WHEN gdp_value_percent > 4 
+         AND lead_payroll > 4
+        THEN 'Payroll is Higher'
+        WHEN gdp_value_percent > 4 
+         AND lead_price > 4
+        THEN 'Price is Higher'
+        WHEN gdp_value_percent > 4
+         AND (lead_price
+         OR lead_payroll) < 4
+        THEN 'Has NO effect'
+        ELSE '-'
+       END                                  AS previous_year_differences
+FROM price_and_payroll
+JOIN gdp_join
+    ON common_year = `year`
+WHERE common_year 
+    BETWEEN 2007 
+    AND 2018
+    AND gdp_value_percent > 4
+GROUP BY common_year
+ORDER BY common_year
+;

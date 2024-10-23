@@ -1,0 +1,18 @@
+-- 1. Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají? --
+-- Odpověď: Z dlouhodobého hlediska rostou mzdy ve všech odvětí, ale z krátkodobého hlediska v některých odvětvích v průběhu let mzdy klesají. Nejčastěji v oboru Těžba a dobývání --
+
+SELECT payroll_industry_branch
+      ,COUNT(common_year) AS payroll_count
+FROM(
+    SELECT payroll_industry_branch
+          ,common_year
+          ,payroll_value_percent
+    FROM t_petr_luka_project_sql_primary_final
+GROUP BY payroll_industry_branch
+        ,common_year)     AS tab_select
+WHERE payroll_value_percent < 0 
+    AND payroll_industry_branch <> 'Průměrná hodnota'
+GROUP BY payroll_industry_branch
+ORDER BY payroll_count DESC
+        ,payroll_industry_branch ASC
+;

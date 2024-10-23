@@ -1,0 +1,28 @@
+-- 3. Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)? --
+-- Odpověď: Nejpomaleji mezi rokem 2006 a 2018 zdražuje Cukr krystalový, který za tuto dobu zlevnil o 37,3 %.
+
+WITH year_2018 AS(
+SELECT price_name                                                AS name_2018
+      ,price_value                                               AS price_2018
+FROM t_petr_luka_project_SQL_primary_final
+WHERE common_year = 2018
+GROUP BY common_year
+        ,price_name
+ORDER BY price_name
+), year_2006 AS (
+SELECT price_name                                                AS name_2006 
+      ,price_value                                               AS price_2006
+FROM t_petr_luka_project_SQL_primary_final
+WHERE common_year = 2006
+GROUP BY common_year
+        ,price_name
+ORDER BY price_name
+)
+SELECT name_2018
+      ,ROUND((((price_2018 - price_2006) / price_2018) *100), 1) AS price_perc
+FROM year_2018 
+JOIN year_2006
+    ON name_2018 = name_2006
+ORDER BY price_perc
+LIMIT 1
+;

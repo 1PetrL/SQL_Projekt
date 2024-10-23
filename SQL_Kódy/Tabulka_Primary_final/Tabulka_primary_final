@@ -1,0 +1,54 @@
+CREATE OR REPLACE TABLE t_petr_luka_project_SQL_primary_final AS
+WITH price_group AS (
+SELECT price_year
+      ,price_name
+      ,price_value
+      ,price_value_unit
+      ,price_unit
+      ,CASE 
+        WHEN price_year = 2006 OR price_value IS NULL
+        THEN 0
+        ELSE (price_value)-(LAG(price_value, 1) OVER (
+            ORDER BY price_name 
+                    ,price_year))
+       END                          AS price_value_diff
+FROM joining_price_tables
+) ,payroll_group AS (
+SELECT payroll_year
+      ,value                        AS payroll_value
+      ,unit                         AS payroll_unit
+      ,industry_branch
+      ,(value - (LAG(value, 1) OVER (
+          ORDER BY industry_branch
+                  ,payroll_year ))) AS payroll_value_diff
+FROM joining_payroll_tables
+GROUP BY industry_branch
+        ,payroll_year
+)
+SELECT payroll_year                 AS common_year
+      ,industry_branch              AS payroll_industry_branch
+      ,price_name
+      ,ROUND(AVG(price_value), 1)   AS price_value
+      ,price_value_unit
+      ,price_unit
+      ,ROUND(AVG(payroll_value), 1) AS payroll_value
+      ,payroll_unit
+      ,payroll_value_diff
+      ,CASE 
+        WHEN payroll_value_diff <> 0
+        THEN ROUND(((payroll_value_diff / payroll_value) * 100), 1)
+        ELSE 0
+       END                          AS payroll_value_percent
+      ,price_value_diff
+      ,CASE 
+        WHEN price_unit IS NULL
+        THEN 0
+        ELSE ROUND(((price_value_diff / price_value) * 100), 1)
+       END                          AS price_value_percent
+FROM payroll_group
+JOIN price_group
+    ON payroll_year = price_year
+GROUP BY payroll_year
+        ,industry_branch
+        ,price_name
+;

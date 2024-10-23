@@ -1,0 +1,15 @@
+CREATE OR REPLACE VIEW joining_price_tables AS
+SELECT YEAR (date_from)     AS price_year
+      ,cpc.name             AS price_name
+      ,ROUND(AVG(value), 1) AS price_value   
+      ,price_value          AS price_value_unit
+      ,price_unit
+FROM czechia_price cp 
+JOIN czechia_price_category cpc
+    ON category_code = cpc.code
+WHERE region_code IS NULL
+GROUP BY price_year
+        ,price_name
+ORDER BY price_name
+        ,price_year
+;

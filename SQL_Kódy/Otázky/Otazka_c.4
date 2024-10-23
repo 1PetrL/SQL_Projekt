@@ -1,0 +1,10 @@
+-- 4. Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)? --
+-- Odpověď: NE, nejvyšší meziroční nárust cen potravin oproti nárustu mezd byl v roce 2013 o 5,4 % --
+
+SELECT common_year
+      ,ROUND(AVG(price_value_percent), 1) - ROUND(AVG(payroll_value_percent), 1) AS diff_value_percent
+FROM t_petr_luka_project_SQL_primary_final
+GROUP BY common_year
+ORDER BY diff_value_percent DESC
+LIMIT 1
+;

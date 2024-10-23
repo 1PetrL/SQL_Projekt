@@ -1,0 +1,17 @@
+-- 2. Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd? --
+-- Odpověď: viz tabulka níže, kde lze vidět, že v roce 2006 lze koupit 1 213,4 Kg Chleba nebo 1 356,7 litrů mléka za průměrnou mzdu v tomto roce. --
+-- V roce 2018 lze zakoupit 1 324,1 Kg chleba nebo 1618,3 litrů mléka. --
+
+SELECT common_year 
+      ,price_name 
+      ,ROUND((AVG(payroll_value)/price_value), 1) AS count_value
+      ,price_unit
+FROM t_petr_luka_project_SQL_primary_final
+WHERE price_name 
+    IN ('Mléko polotučné pasterované', 'Chléb konzumní kmínový')
+    AND common_year 
+    IN (2006, 2018) 
+    AND payroll_industry_branch = 'Průměrná hodnota'
+GROUP BY common_year 
+        ,price_name
+;

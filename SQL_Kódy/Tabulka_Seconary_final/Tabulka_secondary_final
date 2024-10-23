@@ -1,0 +1,16 @@
+CREATE OR REPLACE TABLE t_petr_luka_project_SQL_secondary_final AS
+SELECT `year` AS e_year
+      ,e.country
+      ,e.population
+      ,GDP
+      ,gini
+FROM countries c
+LEFT JOIN economies e 
+    ON e.country = c.country
+WHERE continent = 'Europe'
+    AND `year` 
+    BETWEEN 2006
+    AND 2018
+ORDER BY e_year
+        ,country
+;
